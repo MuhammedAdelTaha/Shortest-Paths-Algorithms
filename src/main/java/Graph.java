@@ -8,7 +8,7 @@ public class Graph{
     //can't insert a node that is already in the graph
     private ArrayList<ArrayList<Integer>> graph = new ArrayList<>();
     private Integer v, e;
-    private HashMap<ArrayList<Integer>, Integer> edgeWeight = new HashMap<>();
+    private HashMap<ArrayList<Integer>, Integer> edgesWeights = new HashMap<>();
     //V E
     //i j w
     private boolean isNegative(int number){
@@ -28,11 +28,11 @@ public class Graph{
     }
     private void clear(){
         graph.clear();
-        edgeWeight.clear();
+        edgesWeights.clear();
     }
     public void print(){
         System.out.println(graph);
-        for (Map.Entry<ArrayList<Integer>, Integer> w : edgeWeight.entrySet()){
+        for (Map.Entry<ArrayList<Integer>, Integer> w : edgesWeights.entrySet()){
             System.out.print("[");
             System.out.print(w.getKey().get(0));
             System.out.print(", ");
@@ -53,7 +53,7 @@ public class Graph{
         if(graph.get(vertex1) == null) graph.set(vertex1, new ArrayList<>());
         graph.get(vertex1).add(vertex2);
         ArrayList<Integer> key = new ArrayList<>(); key.add(vertex1); key.add(vertex2);
-        edgeWeight.put(key, weight);
+        edgesWeights.put(key, weight);
         return true;
     }
     public boolean initialize(String path){
@@ -110,6 +110,7 @@ public class Graph{
         }
         return true;
     }
+    //O(v^2)
     public void dijkstra(Integer sourceNode, ArrayList<Integer> costs, ArrayList<Integer> parents){
         ArrayList<Boolean> visited = new ArrayList<>();
         for (int i = 0; i < v; i++){
@@ -125,8 +126,11 @@ public class Graph{
                 for (Integer child : children){
                     if(!visited.get(child)){
                         ArrayList<Integer> key = new ArrayList<>(); key.add(sourceNode); key.add(child);
-                        costs.set(child, Integer.min(costs.get(child), costs.get(sourceNode) + edgeWeight.get(key)));
-                        parents.set(child, sourceNode);
+                        Integer currentCost = costs.get(child);
+                        Integer newCost = costs.get(sourceNode);
+                        if(newCost != Integer.MAX_VALUE) newCost += edgesWeights.get(key);
+                        costs.set(child, Integer.min(currentCost, newCost));
+                        if(newCost < currentCost) parents.set(child, sourceNode);
                     }
                 }
             }
@@ -142,5 +146,36 @@ public class Graph{
             if(sourceNode == null) break;
             visited.set(sourceNode, true);
         }
+    }
+    private void relaxation(ArrayList<Integer> parents, ArrayList<Integer> costs, boolean setParent) {
+        for (Map.Entry<ArrayList<Integer>, Integer> edgeWeight : edgesWeights.entrySet()){
+            Integer from = edgeWeight.getKey().get(0);
+            Integer to = edgeWeight.getKey().get(1);
+            Integer w = edgeWeight.getValue();
+            Integer currentCost = costs.get(to);
+            Integer newCost = costs.get(from);
+            if(costs.get(from) != Integer.MAX_VALUE) newCost += w;
+            costs.set(to, Math.min(currentCost, newCost));
+            if((newCost < currentCost) && setParent) parents.set(to, from);
+        }
+    }
+    /*Bellman-ford Algorithm :
+    * takes O(n^2) time for regular graph and O(n^3) for complete graph
+    * can detect if there is a negative weighted cycle in the graph
+    **/
+    public boolean bellmanFord(Integer sourceNode, ArrayList<Integer> costs, ArrayList<Integer> parents){
+        for (int i = 0; i < v; i++){
+            costs.add(i, Integer.MAX_VALUE);
+            parents.add(i, null);
+        }
+        costs.set(sourceNode, 0);
+        for(int i = 0; i < v-1; i++){
+            relaxation(parents, costs, true);
+        }
+        //doing another iteration on this temp array and find if the costs have been changed or not.
+        //if they are changed that means that there are negative weighted cycles and we will return false.
+        ArrayList<Integer> temp = (ArrayList<Integer>) costs.clone();
+        relaxation(parents, temp, false);
+        return temp.equals(costs);
     }
 }

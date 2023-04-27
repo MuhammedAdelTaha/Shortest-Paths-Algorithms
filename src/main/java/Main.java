@@ -12,5 +12,9 @@ public class Main {
         graph.dijkstra(0, costs, parents);
         System.out.println(costs);
         System.out.println(parents);
+        costs.clear(); parents.clear();
+        System.out.println(graph.bellmanFord(0, costs, parents));
+        System.out.println(costs);
+        System.out.println(parents);
     }
 }
