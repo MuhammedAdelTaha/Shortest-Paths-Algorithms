@@ -1,3 +1,5 @@
+package main.java;
+
 import java.io.*;
 import java.util.*;
 
@@ -6,11 +8,11 @@ public class Graph{
     //can't insert a node that is already in the graph
     private ArrayList<ArrayList<Integer>> graph = new ArrayList<>();
     private Integer v, e;
-    private HashMap<Integer[], Integer> edgeWeight = new HashMap<>();
+    private HashMap<ArrayList<Integer>, Integer> edgeWeight = new HashMap<>();
     //V E
     //i j w
-    private boolean isPositive(int number){
-        return number >= 0;
+    private boolean isNegative(int number){
+        return number < 0;
     }
     private boolean isValidNumber(String str) {
         try {
@@ -30,14 +32,17 @@ public class Graph{
     }
     public void print(){
         System.out.println(graph);
-        for (Map.Entry<Integer[], Integer> w : edgeWeight.entrySet()){
+        for (Map.Entry<ArrayList<Integer>, Integer> w : edgeWeight.entrySet()){
             System.out.print("[");
-            System.out.print(Arrays.stream(w.getKey()).toList().get(0));
+            System.out.print(w.getKey().get(0));
             System.out.print(", ");
-            System.out.print(Arrays.stream(w.getKey()).toList().get(1));
+            System.out.print(w.getKey().get(1));
             System.out.print("] -> ");
             System.out.println(w.getValue());
         }
+    }
+    public Integer size(){
+        return v;
     }
     //return false if the edge already exists and don't add the edge
     private boolean insert(Integer vertex1, Integer vertex2, Integer weight){
@@ -47,7 +52,8 @@ public class Graph{
         }
         if(graph.get(vertex1) == null) graph.set(vertex1, new ArrayList<>());
         graph.get(vertex1).add(vertex2);
-        edgeWeight.put(new Integer[]{vertex1, vertex2}, weight);
+        ArrayList<Integer> key = new ArrayList<>(); key.add(vertex1); key.add(vertex2);
+        edgeWeight.put(key, weight);
         return true;
     }
     public boolean initialize(String path){
@@ -77,7 +83,7 @@ public class Graph{
         ArrayList<Integer> inputInt = new ArrayList<>();
         for (String input : inputs) inputInt.add(Integer.parseInt(input));
         v = inputInt.get(0); e = inputInt.get(1);
-        if(!isPositive(v) || !isPositive(e) || v != e+1) {
+        if(isNegative(v) || isNegative(e) || e < v) {
             System.out.println("4");
             return false;
         }
@@ -103,5 +109,38 @@ public class Graph{
             }
         }
         return true;
+    }
+    public void dijkstra(Integer sourceNode, ArrayList<Integer> costs, ArrayList<Integer> parents){
+        ArrayList<Boolean> visited = new ArrayList<>();
+        for (int i = 0; i < v; i++){
+            costs.add(i, Integer.MAX_VALUE);
+            parents.add(i, null);
+            visited.add(i, false);
+        }
+        costs.set(sourceNode, 0);
+        visited.set(sourceNode, true);
+        for(int i = 0; i < v; i++){
+            ArrayList<Integer> children = graph.get(sourceNode);
+            if (children != null) {
+                for (Integer child : children){
+                    if(!visited.get(child)){
+                        ArrayList<Integer> key = new ArrayList<>(); key.add(sourceNode); key.add(child);
+                        costs.set(child, Integer.min(costs.get(child), costs.get(sourceNode) + edgeWeight.get(key)));
+                        parents.set(child, sourceNode);
+                    }
+                }
+            }
+            sourceNode = null;
+            for (int j = 0; j < v; j++){
+                if(!visited.get(j)){
+                    if(sourceNode == null) {
+                        sourceNode = j; continue;
+                    }
+                    if(costs.get(j) < costs.get(sourceNode)) sourceNode = j;
+                }
+            }
+            if(sourceNode == null) break;
+            visited.set(sourceNode, true);
+        }
     }
 }
