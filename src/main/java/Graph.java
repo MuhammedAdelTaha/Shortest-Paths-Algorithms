@@ -6,9 +6,9 @@ import java.util.*;
 public class Graph{
     //size, isEmpty, contains, clear,print, insert, delete, bfs, dfs
     //can't insert a node that is already in the graph
-    private ArrayList<ArrayList<Integer>> graph = new ArrayList<>();
-    private Integer v, e;
-    private HashMap<ArrayList<Integer>, Integer> edgesWeights = new HashMap<>();
+    private final ArrayList<ArrayList<Integer>> graph = new ArrayList<>();
+    private Integer v;
+    private final HashMap<ArrayList<Integer>, Integer> edgesWeights = new HashMap<>();
     //V E
     //i j w
     private boolean isNegative(int number){
@@ -33,26 +33,9 @@ public class Graph{
         graph.clear();
         edgesWeights.clear();
     }
-    public void print(){
-        System.out.println(graph);
-        for (Map.Entry<ArrayList<Integer>, Integer> w : edgesWeights.entrySet()){
-            System.out.print("[");
-            System.out.print(w.getKey().get(0));
-            System.out.print(", ");
-            System.out.print(w.getKey().get(1));
-            System.out.print("] -> ");
-            System.out.println(w.getValue());
-        }
-    }
-    public Integer size(){
-        return v;
-    }
     //return false if the edge already exists and don't add the edge
     private boolean insert(Integer vertex1, Integer vertex2, Integer weight){
-        if(contains(vertex1, vertex2) || vertex1 >= v || vertex1 < 0 || vertex2 >= v || vertex2 < 0) {
-            System.out.println("check");
-            return false;
-        }
+        if(contains(vertex1, vertex2) || vertex1 >= v || vertex1 < 0 || vertex2 >= v || vertex2 < 0) return false;
         if(graph.get(vertex1) == null) graph.set(vertex1, new ArrayList<>());
         graph.get(vertex1).add(vertex2);
         ArrayList<Integer> key = new ArrayList<>(); key.add(vertex1); key.add(vertex2);
@@ -69,45 +52,28 @@ public class Graph{
             }
             myReader.close();
         } catch (FileNotFoundException e) {
-            System.out.println("Please, enter a valid path..."); return false;
-        }
-        int n = inputs.size();
-        if (n <= 5) {
-            System.out.println("1");
             return false;
         }
+        int n = inputs.size();
+        if (n <= 5) return false;
         for (String input : inputs) {
-            if (!isValidNumber(input)) {
-                System.out.println("2");
-                return false;
-            }
+            if (!isValidNumber(input)) return false;
         }
         clear();
         ArrayList<Integer> inputInt = new ArrayList<>();
         for (String input : inputs) inputInt.add(Integer.parseInt(input));
-        v = inputInt.get(0); e = inputInt.get(1);
-        if(isNegative(v) || isNegative(e) || e < v || e > v*(v-1)) {
-            System.out.println("4");
-            return false;
-        }
-        if(3 * e != n - 2) {
-            System.out.println("3");
-            return false;
-        }
+        v = inputInt.get(0);
+        Integer e1 = inputInt.get(1);
+        if(isNegative(v) || isNegative(e1) || e1 < v || e1 > v*(v-1)) return false;
+        if(3 * e1 != n - 2) return false;
         boolean flag;
         for (int i = 0; i < v; i++){
             graph.add(i, null);
         }
         for (int i = 2; i < n; i+=3){
-            System.out.println("---------------------");
-            System.out.println(inputInt.get(i));
-            System.out.println(inputInt.get(i + 1));
-            System.out.println(inputInt.get(i + 2));
-            System.out.println("---------------------");
             flag = insert(inputInt.get(i), inputInt.get(i + 1), inputInt.get(i + 2));
             if(!flag) {
                 clear();
-                System.out.println(i + 3);
                 return false;
             }
         }
@@ -194,7 +160,7 @@ public class Graph{
                 for (int j = 0; j < v; j++){
                     if (i == k || j == k || i == j) continue;
                     Integer cost1 = costs.get(i).get(k), cost2 = costs.get(k).get(j);
-                    Integer newCost = Integer.MAX_VALUE, currentCost = costs.get(i).get(j);
+                    int newCost = Integer.MAX_VALUE, currentCost = costs.get(i).get(j);
                     if(cost1 != Integer.MAX_VALUE && cost2 != Integer.MAX_VALUE) newCost = cost1 + cost2;
                     costs.get(i).set(j, Math.min(newCost, currentCost));
                     if (newCost < currentCost) {
