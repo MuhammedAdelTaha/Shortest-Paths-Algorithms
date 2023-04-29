@@ -22,6 +22,9 @@ public class Graph{
             return false;
         }
     }
+    private boolean isEmpty(){
+        return graph.isEmpty();
+    }
     private boolean contains(Integer vertex1, Integer vertex2){
         if(graph.get(vertex1) == null) return false;
         return graph.get(vertex1).contains(vertex2);
@@ -83,7 +86,7 @@ public class Graph{
         ArrayList<Integer> inputInt = new ArrayList<>();
         for (String input : inputs) inputInt.add(Integer.parseInt(input));
         v = inputInt.get(0); e = inputInt.get(1);
-        if(isNegative(v) || isNegative(e) || e < v) {
+        if(isNegative(v) || isNegative(e) || e < v || e > v*(v-1)) {
             System.out.println("4");
             return false;
         }
@@ -110,8 +113,9 @@ public class Graph{
         }
         return true;
     }
-    //O(v^2)
+    //Single source shortest-path algorithm with O(v^2) time complexity
     public void dijkstra(Integer sourceNode, ArrayList<Integer> costs, ArrayList<Integer> parents){
+        if(isEmpty()) return;
         ArrayList<Boolean> visited = new ArrayList<>();
         for (int i = 0; i < v; i++){
             costs.add(i, Integer.MAX_VALUE);
@@ -160,10 +164,12 @@ public class Graph{
         }
     }
     /*Bellman-ford Algorithm :
+    * single source shortest-path algorithm
     * takes O(n^2) time for regular graph and O(n^3) for complete graph
     * can detect if there is a negative weighted cycle in the graph
     **/
     public boolean bellmanFord(Integer sourceNode, ArrayList<Integer> costs, ArrayList<Integer> parents){
+        if (isEmpty()) return true;
         for (int i = 0; i < v; i++){
             costs.add(i, Integer.MAX_VALUE);
             parents.add(i, null);
@@ -173,9 +179,65 @@ public class Graph{
             relaxation(parents, costs, true);
         }
         //doing another iteration on this temp array and find if the costs have been changed or not.
-        //if they are changed that means that there are negative weighted cycles and we will return false.
+        //if they are changed that means that there are negative weighted cycles, and we will return false.
         ArrayList<Integer> temp = (ArrayList<Integer>) costs.clone();
         relaxation(parents, temp, false);
         return temp.equals(costs);
+    }
+    /*Floyd-warshall Algorithm :
+    * all pairs shortest-path algorithm
+    * runs in O(n^3)
+    * */
+    private void floydWarshallLoop(ArrayList<ArrayList<Integer>> costs, ArrayList<ArrayList<Integer>> predecessors){
+        for (int k = 0; k < v; k++){
+            for(int i = 0; i < v; i++){
+                for (int j = 0; j < v; j++){
+                    if (i == k || j == k || i == j) continue;
+                    Integer cost1 = costs.get(i).get(k), cost2 = costs.get(k).get(j);
+                    Integer newCost = Integer.MAX_VALUE, currentCost = costs.get(i).get(j);
+                    if(cost1 != Integer.MAX_VALUE && cost2 != Integer.MAX_VALUE) newCost = cost1 + cost2;
+                    costs.get(i).set(j, Math.min(newCost, currentCost));
+                    if (newCost < currentCost) {
+                        predecessors.get(i).set(j, k);
+                    }
+                }
+            }
+        }
+    }
+    public boolean floydWarshall(ArrayList<ArrayList<Integer>> costs, ArrayList<ArrayList<Integer>> predecessors){
+        if(isEmpty()) return true;
+        for(int i = 0; i < v; i++){
+            costs.add(new ArrayList<>());
+            predecessors.add(new ArrayList<>());
+            for(int j = 0; j < v; j++){
+                predecessors.get(i).add(null);
+                if(i == j) {
+                    costs.get(i).add(0);
+                    continue;
+                }
+                costs.get(i).add(Integer.MAX_VALUE);
+            }
+        }
+        for(int i = 0; i < v; i++){
+            ArrayList<Integer> children = graph.get(i);
+            if(children == null) continue;
+            for (Integer child : children){
+                ArrayList<Integer> key = new ArrayList<>(); key.add(i); key.add(child);
+                costs.get(i).set(child, edgesWeights.get(key));
+                predecessors.get(i).set(child, i);
+            }
+        }
+        floydWarshallLoop(costs, predecessors);
+        ArrayList<ArrayList<Integer>> clonedCosts = clone(costs);
+        ArrayList<ArrayList<Integer>> clonedPredecessors = clone(predecessors);
+        floydWarshallLoop(clonedCosts, clonedPredecessors);
+        return clonedCosts.equals(costs);
+    }
+    private ArrayList<ArrayList<Integer>> clone(ArrayList<ArrayList<Integer>> arrays){
+        ArrayList<ArrayList<Integer>> clonedArray = new ArrayList<>();
+        for (ArrayList<Integer> array : arrays){
+            clonedArray.add((ArrayList<Integer>) array.clone());
+        }
+        return clonedArray;
     }
 }
