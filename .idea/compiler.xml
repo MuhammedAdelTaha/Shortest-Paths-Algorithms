@@ -9,8 +9,5 @@
         <module name="Shortest_Paths_Algorithms" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="Shortest_Paths_Algorithms" target="16" />
-    </bytecodeTargetLevel>
   </component>
 </project>
